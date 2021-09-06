@@ -1,0 +1,15 @@
+---
+  sera_inbox_folder_path:
+    description: Location for sera inbox folders
+    type: string
+    required: true
+    default: "stanley"
+  sera_inbox_folder_path:
+    description: Location for sera inbox folders
+    type: string
+    required: true
+    default: "stanley"
+  wp1_notification_mail_bioinfo:
+    description: Location for sera inbox folders
+    type: string
+    required: true

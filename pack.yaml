@@ -1,0 +1,10 @@
+---
+name: DuctusCleanPacks
+ref: ductus_clean
+description: Pack for removing data
+keywords:
+  - sequencing
+  - life science
+version: 0.0.1
+author: Patrik Smeds
+email: patrik.smeds@scilifelab.uu.se

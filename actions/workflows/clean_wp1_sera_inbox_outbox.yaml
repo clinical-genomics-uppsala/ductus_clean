@@ -1,0 +1,172 @@
+version: "1.0" # mistral version
+
+description: Remove runfolders from Inbox and Outbox from Sera runs
+
+input:
+  - inbox_folder_path
+  - outbox_folder_path
+  - project_type
+  - summary
+  - mail_bioinfo
+  - stderr
+
+vars:
+  - folders: null
+
+tasks:
+  find_folders:
+    action: core.local
+    input:
+      cwd: <% ctx(inbox_folder_path) %>/
+      cmd: find . -mindepth 3 -maxdepth 3 -type f -name state -exec grep done {} + | python3 -c 'import sys; print(",".join([folder.split(r"/")[1] for folder in sys.stdin.read().rstrip().split("\n")]))'
+    next:
+      - when: <% succeeded() %> # and result().stdout %>
+        publish: folders=<% result().stdout %>
+        do:
+          - filter_away_tso500
+
+  filter_away_tso500:
+    action: core.local
+    input:
+      cwd: <% ctx(inbox_folder_path) %>/
+      cmd: |
+          python3 -c 'from ductus.tools.utils import contains; import sys;
+          print(",".join(
+            [ folder for folder in "<% ctx(folders) %>".split(",")
+                if not contains(folder.strip("[|]\n") + "/SampleSheet.csv", "wp1", "tso500", "<% ctx(project_type) %>")
+          ]))'
+    next:
+      - when: <% succeeded() %>
+        publish: folders=<% result().stdout %>
+        do:
+          - look_for_old_folders
+
+  look_for_old_folders:
+    action: core.local
+    input:
+      cwd: <% ctx(inbox_folder_path) %>/
+      cmd: |
+          python3 -c 'import sys, datetime;
+          kept=[]
+          folders=[]
+          for folder in "<% ctx(folders) %>".split(","):
+            if (datetime.datetime.now() - datetime.datetime.strptime(folder.split("_")[0],"%Y%m%d")).days > 14:
+              folders.append(folder)
+            else:
+              kept.append(folders)
+          print(",".join(folders) + ";New folders:" + ",".join(kept))'
+    next:
+      - when: <% succeeded() %>
+        publish: folders=<% result().stdout %>
+        do:
+          - filter_away_clean_ignore
+
+  filter_away_clean_ignore:
+    action: core.local
+    input:
+      cwd: <% ctx(inbox_folder_path) %>/
+      cmd: |
+          python3 -c 'import os;
+          folders=[]
+          ignored_folders=[]
+          for folder in "<% ctx(folders) %>".split(";")[0].split(","):
+            if not os.path.isfile(folder+"/.clean_ignore"):
+              folders.append(folder)
+            else:
+              ignored_folders.append(folder)
+          print(",".join(folders) +
+                ";Clean ignore:" +
+                ",".join(ignored_folders) + ";" +
+                ";".join("<% ctx(folders) %>".split(";")[1:]))'
+    next:
+      - when: <% succeeded() %>
+        publish: folders=<% result().stdout %>
+        do:
+          - outbox_delivered
+
+  outbox_delivered:
+    action: core.local
+    input:
+      cwd: <% ctx(outbox_folder_path) %>/
+      cmd: |
+        python3 -c 'import os
+        folders=[]
+        not_delivered=[]
+        for folder in "<% ctx(folders) %>".split(";")[0].split(","):
+          if os.path.isfile(folder+"/.arteria/state") and open(folder+"/.arteria/state").read() == "done":
+            folders.append(folder)
+          else:
+            not_delivered.append(folder)
+        print(",".join(folders) +
+              ";Not deliverd:" +
+              ",".join(not_delivered) + ";" +
+              ";".join("<% ctx(folders) %>".split(";")[1:]))'
+    next:
+      - when: <% succeeded() %>
+        publish: folders=<% result().stdout %>
+        do:
+          - process_removable
+          - process_summary
+
+  process_summary:
+    action: core.local
+    input:
+      cmd: python3 -c 'print("\n".join("<% ctx(folders) %>".split(";")[1:]).replace(":",":\n - ").replace(",","\n - "))'
+    next:
+      - when: <% succeeded() %>
+        publish: summary=<% result().stdout %>
+        do:
+          - send_summary
+
+  process_removable:
+    action: core.local
+    input:
+      cmd: |
+        python3 -c 'import json;
+        folders="<% ctx(folders) %>".split(";")[0].split(",")
+        if len(folders):
+          exit(1)
+        else:
+          print(json.dumps(folders))'
+    next:
+      - when: <% succeeded() %>
+        publish: removable_folders=<% result().stdout %>
+        do:
+          - remove_outbox
+          - remove_inbox
+      - when: <% failed() %>
+        do:
+          - nothing_to_remove
+
+  nothing_to_remove:
+    action: core.noop
+
+  remove_outbox:
+    with: <% ctx(removable_folders) %>
+    action: core.local
+    input:
+     cwd: <% ctx(outbox_folder_path) %>/
+     cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
+
+  remove_inbox:
+    with: <% ctx(removable_folders) %>
+    action: core.local
+    input:
+     cwd: <% ctx(inbox_folder_path) %>/
+     cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
+
+  send_summary:
+    action: core.sendmail
+    input:
+      to: <% ctx(mail_bioinfo) %>
+      from: stanley@clinicalgenomics-as.se
+      subject: "Wp1: Sera: Clean up summary"
+      body: <% ctx(summary) %>
+
+  bioinfo_error_notifier:
+    action: core.sendmail
+    input:
+      to: <% ctx(mail_bioinfo) %>
+      from: stanley@clinicalgenomics-as.se
+      subject: "[DUCTUS][WP1][ERROR] - Clean error"
+      body: Something went wrong during cleaning of inbox or outbox folder
