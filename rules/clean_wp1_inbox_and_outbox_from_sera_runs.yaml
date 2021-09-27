@@ -7,11 +7,11 @@ enabled: false
 trigger:
   type: "core.st2.CronTimer"
   parameters:
-      timezone: "UTC"
-      day_of_week: 2 # or day_of_week: "sun"
-      hour: 0
-      minute: 0
-      second: 0
+    timezone: "UTC"
+    day_of_week: 2 # or day_of_week: "sun"
+    hour: 0
+    minute: 0
+    second: 0
 
 action:
     ref: "ductus_clean.clean_wp1_sera_inbox_outbox"
