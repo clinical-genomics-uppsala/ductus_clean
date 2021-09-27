@@ -18,7 +18,7 @@ tasks:
     action: core.local
     input:
       cwd: <% ctx(inbox_folder_path) %>/
-      cmd: find . -mindepth 3 -maxdepth 3 -type f -name state -exec grep done {} + | python3 -c 'import sys; print(",".join([folder.split(r"/")[1] for folder in sys.stdin.read().rstrip().split("\n")]))'
+      cmd: find . -mindepth 3 -maxdepth 3 -type f -name state -exec grep -Hl done {} + | python3 -c 'import sys; print(",".join([folder.split(r"/")[1] for folder in sys.stdin.read().rstrip().split("\n") if r"/" in folder]))'
     next:
       - when: <% succeeded() %> # and result().stdout %>
         publish: folders=<% result().stdout %>
@@ -31,6 +31,8 @@ tasks:
       cwd: <% ctx(inbox_folder_path) %>/
       cmd: |
           python3 -c 'from ductus.tools.utils import contains; import sys;
+          if len("<% ctx(folders) %>") == 0:
+            exit(1)
           print(",".join(
             [ folder for folder in "<% ctx(folders) %>".split(",")
                 if not contains(folder.strip("[|]\n") + "/SampleSheet.csv", "wp1", "tso500", "<% ctx(project_type) %>")
@@ -40,6 +42,9 @@ tasks:
         publish: folders=<% result().stdout %>
         do:
           - look_for_old_folders
+      - when: <% failed() %>
+        do:
+          - nothing_to_remove
 
   look_for_old_folders:
     action: core.local
@@ -124,7 +129,7 @@ tasks:
       cmd: |
         python3 -c 'import json;
         folders="<% ctx(folders) %>".split(";")[0].split(",")
-        if len(folders):
+        if len(folders) == 0:
           exit(1)
         else:
           print(json.dumps(folders))'
