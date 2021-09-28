@@ -5,13 +5,10 @@ description: "Rule that triggers cleaning of inbox and outbox data"
 enabled: false
 
 trigger:
-  type: "core.st2.CronTimer"
+  type: "core.st2.IntervalTimer"
   parameters:
-    timezone: "UTC"
-    day_of_week: 2 # or day_of_week: "sun"
-    hour: 0
-    minute: 0
-    second: 0
+    unit: "seconds"
+    delta: 30
 
 action:
     ref: "ductus_clean.clean_wp1_sera_inbox_outbox"
