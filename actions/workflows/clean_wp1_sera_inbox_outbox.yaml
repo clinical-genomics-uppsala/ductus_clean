@@ -51,14 +51,17 @@ tasks:
     input:
       cwd: <% ctx(inbox_folder_path) %>/
       cmd: |
-          python3 -c 'import sys, datetime;
+          python3 -c 'import sys, datetime
+          if len("<% ctx(folders) %>".split(";")[0].split(",")[0]) == 0:
+            print("<% ctx(folders) %>" + ";New folders:")
+            exit(0)
           kept=[]
           folders=[]
           for folder in "<% ctx(folders) %>".split(","):
             if (datetime.datetime.now() - datetime.datetime.strptime(folder.split("_")[0],"%Y%m%d")).days > 14:
               folders.append(folder)
             else:
-              kept.append(folders)
+              kept.append(folder)
           print(",".join(folders) + ";New folders:" + ",".join(kept))'
     next:
       - when: <% succeeded() %>
@@ -69,13 +72,15 @@ tasks:
   filter_away_clean_ignore:
     action: core.local
     input:
-      cwd: <% ctx(inbox_folder_path) %>/
       cmd: |
           python3 -c 'import os;
+          if len("<% ctx(folders) %>".split(";")[0].split(",")[0]) == 0:
+            print("<% ctx(folders) %>" + ";Clean ignore:")
+            exit(0)
           folders=[]
           ignored_folders=[]
           for folder in "<% ctx(folders) %>".split(";")[0].split(","):
-            if not os.path.isfile(folder+"/.clean_ignore"):
+            if not (os.path.isfile("<% ctx(inbox_folder_path) %>/" + folder + "/.clean_ignore") or os.path.isfile("<% ctx(outbox_folder_path) %>/" + folder + "/.clean_ignore")):
               folders.append(folder)
             else:
               ignored_folders.append(folder)
@@ -95,6 +100,9 @@ tasks:
       cwd: <% ctx(outbox_folder_path) %>/
       cmd: |
         python3 -c 'import os
+        if len("<% ctx(folders) %>".split(";")[0].split(",")[0]) == 0:
+          print("<% ctx(folders) %>" + ";Not delivered:")
+          exit(0)
         folders=[]
         not_delivered=[]
         for folder in "<% ctx(folders) %>".split(";")[0].split(","):
@@ -112,11 +120,15 @@ tasks:
         do:
           - process_removable
           - process_summary
+      - when: <% failed() %>
+        do:
+          - nothing_to_remove
+          - process_summary
 
   process_summary:
     action: core.local
     input:
-      cmd: python3 -c 'print("\n".join("<% ctx(folders) %>".split(";")[1:]).replace(":",":\n - ").replace(",","\n - "))'
+      cmd: python3 -c 'print("Removed:\n - " + "\n".join("<% ctx(folders) %>".split(";")).replace(":",":\n - ").replace(",","\n - "))'
     next:
       - when: <% succeeded() %>
         publish: summary=<% result().stdout %>
@@ -129,7 +141,7 @@ tasks:
       cmd: |
         python3 -c 'import json;
         folders="<% ctx(folders) %>".split(";")[0].split(",")
-        if len(folders) == 0:
+        if len(folders) == 1 and len(folders[0]) == 0 :
           exit(1)
         else:
           print(json.dumps(folders))'
@@ -142,6 +154,7 @@ tasks:
       - when: <% failed() %>
         do:
           - nothing_to_remove
+
 
   nothing_to_remove:
     action: core.noop
