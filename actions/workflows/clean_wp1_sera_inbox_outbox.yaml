@@ -72,7 +72,6 @@ tasks:
   filter_away_clean_ignore:
     action: core.local
     input:
-      cwd: <% ctx(inbox_folder_path) %>/
       cmd: |
           python3 -c 'import os;
           if len("<% ctx(folders) %>".split(";")[0].split(",")[0]) == 0:
@@ -81,7 +80,7 @@ tasks:
           folders=[]
           ignored_folders=[]
           for folder in "<% ctx(folders) %>".split(";")[0].split(","):
-            if not os.path.isfile(folder+"/.clean_ignore") and not not os.path.isfile("<% ctx(outbox_folder_path) %>/" + folder+"/.clean_ignore"):
+            if not (os.path.isfile("<% ctx(inbox_folder_path) %>/" + folder + "/.clean_ignore") or os.path.isfile("<% ctx(outbox_folder_path) %>/" + folder + "/.clean_ignore")):
               folders.append(folder)
             else:
               ignored_folders.append(folder)
@@ -129,7 +128,7 @@ tasks:
   process_summary:
     action: core.local
     input:
-      cmd: python3 -c 'print("\n".join("<% ctx(folders) %>".split(";")[1:]).replace(":",":\n - ").replace(",","\n - "))'
+      cmd: python3 -c 'print("Removed:\n - " + "\n".join("<% ctx(folders) %>".split(";")).replace(":",":\n - ").replace(",","\n - "))'
     next:
       - when: <% succeeded() %>
         publish: summary=<% result().stdout %>
@@ -165,16 +164,14 @@ tasks:
     action: core.local
     input:
      cwd: <% ctx(outbox_folder_path) %>/
-     cmd: mkdir -p remove && mv <% item() %> remove/
-     #cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
+     cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
 
   remove_inbox:
     with: <% ctx(removable_folders) %>
     action: core.local
     input:
      cwd: <% ctx(inbox_folder_path) %>/
-     cmd: mkdir -p remove && mv <% item() %> remove/
-     #cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
+     cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
 
   send_summary:
     action: core.sendmail
