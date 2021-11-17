@@ -5,7 +5,6 @@ description: Remove runfolders from Outbox from TM runs
 input:
   - workarea_folder_path
   - outbox_folder_path
-  # - project_type
   - summary
   - mail_bioinfo
   - stderr
@@ -14,13 +13,13 @@ vars:
   - folders: null
 
 tasks:
-  find_folders:
+  find_folders: #Fail om inga folders hittas?
     action: core.local
     input:
       cwd: <% ctx(outbox_folder_path) %>/
       cmd: find . -mindepth 3 -maxdepth 3 -type f -name state -exec grep -Hl done {} + | python3 -c 'import sys; print(",".join([folder.split(r"/")[1] for folder in sys.stdin.read().rstrip().split("\n") if r"/" in folder]))'
     next:
-      - when: <% succeeded() %> # and result().stdout %>
+      - when: <% succeeded() %>
         publish: folders=<% result().stdout %>
         do:
           - look_for_old_folders
@@ -116,27 +115,37 @@ tasks:
     action: core.local
     input:
      cwd: <% ctx(outbox_folder_path) %>/
-     cmd: echo "<% item() %>/Done.txt && rm -rf  <% item() %>"
+     cmd: rm -rf <% item() %>/Done.txt && rm -rf  <% item() %>
+    next:
+      - when: <% failed() %>
+        do:
+          - bioinfo_error_notifier
+          - fail
 
   remove_workarea_fastq:
     with: <% ctx(removable_folders) %>
     action: core.local
     input:
      cwd: <% ctx(workarea_folder_path) %>/
-     cmd: echo "-rf <% item() %>/fastq-perLane" # && rm -rf <% item() %>/fastq
+     cmd: rm -rf <% item() %>/fastq-perLane && rm -rf <% item() %>/fastq
+    next:
+      - when: <% failed() %>
+        do:
+          - bioinfo_error_notifier
+          - fail
 
   send_summary:
     action: core.sendmail
     input:
       to: <% ctx(mail_bioinfo) %>
       from: stanley@clinicalgenomics-as.se
-      subject: "Wp2: TM: Clean up summary"
+      subject: "[DUCTUS][WP2][TM] - Clean up summary"
       body: <% ctx(summary) %>
 
-  # bioinfo_error_notifier:
-  #   action: core.sendmail
-  #   input:
-  #     to: <% ctx(mail_bioinfo) %>
-  #     from: stanley@clinicalgenomics-as.se
-  #     subject: "[DUCTUS][WP2][ERROR] - Clean error"
-  #     body: Something went wrong during cleaning of inbox or outbox folder on Marvin
+  bioinfo_error_notifier:
+    action: core.sendmail
+    input:
+      to: <% ctx(mail_bioinfo) %>
+      from: stanley@clinicalgenomics-as.se
+      subject: "[DUCTUS][WP2][TM][ERROR] - Clean error"
+      body: Something went wrong during cleaning of TM inbox or outbox folder on Marvin
