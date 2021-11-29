@@ -11,3 +11,14 @@
     description: email used to notify bioinfo
     type: string
     required: true
+
+  tm_workarea_folder_path:
+    description: Location for Twist Myeloid workarea folders
+    type: string
+    required: true
+    default: "stanley"
+  tm_outbox_folder_path:
+    description: Location for Twist Myeloid outbox folders
+    type: string
+    required: true
+    default: stanley

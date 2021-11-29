@@ -1,0 +1,29 @@
+---
+name: clean_wp2_TM_inbox_outbox
+description: >
+  Clean Wp2 Inbox and Outbox from Twist Myeloids runfolders
+enabled: true
+runner_type: orquesta
+entry_point: workflows/clean_wp2_TM_inbox_outbox.yaml
+pack: ductus_clean
+parameters:
+  context:
+    default: {}
+    immutable: true
+    type: object
+  workflow:
+    default: ductus_clean.clean_wp2_TM_inbox_outbox
+    immutable: true
+    type: string
+  workarea_folder_path:
+    required: true
+    type: string
+    default: "{{ config_context.tm_workarea_folder_path }}"
+  outbox_folder_path:
+    required: true
+    type: string
+    default: "{{ config_context.tm_outbox_folder_path }}"
+  mail_bioinfo:
+    required: true
+    type: string
+    default: "{{ config_context.wp2_notification_mail_bioinfo }}"
