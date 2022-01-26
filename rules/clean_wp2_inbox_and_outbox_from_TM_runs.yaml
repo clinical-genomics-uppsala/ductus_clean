@@ -1,0 +1,14 @@
+---
+name: "clean_TM_inbox_outbox"
+pack: "ductus_clean"
+description: "Rule that triggers cleaning of inbox and outbox data for TM"
+enabled: false
+
+trigger:
+  type: "core.st2.IntervalTimer"
+  parameters:
+    unit: "seconds"
+    delta: 30
+
+action:
+    ref: "ductus_clean.clean_wp2_TM_inbox_outbox"
