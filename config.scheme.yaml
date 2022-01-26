@@ -3,13 +3,43 @@
     description: Location for sera inbox folders
     type: string
     required: true
-    default: "stanley"
-  sera_inbox_folder_path:
-    description: Location for sera inbox folders
+  sera_outbox_folder_path:
+    description: Location for sera outbox folders
     type: string
     required: true
-    default: "stanley"
   wp1_notification_mail_bioinfo:
-    description: Location for sera inbox folders
+    description: email used to notify bioinfo
     type: string
     required: true
+
+  tm_workarea_folder_path:
+    description: Location for Twist Myeloid workarea folders
+    type: string
+    required: true
+    default: "stanley"
+  tm_outbox_folder_path:
+    description: Location for Twist Myeloid outbox folders
+    type: string
+    required: true
+    default: stanley
+    
+  TSO500_inbox_folder_path:
+    description: Location for TSO500 inbox folders
+    type: string
+    required: true
+    default: "stanley"
+  TSO500_outbox_folder_path:
+      description: Location for TSO500 outbox folders
+      type: string
+      required: true
+      default: "stanley"
+  TSO500_inbox_days_to_remove_runfolder:
+      description: How many days TSO500 runfolders should be kept in inbox
+      type: number
+      required: true
+      default: 10000
+  TSO500_outbox_days_to_remove_runfolder:
+      description: How many days TSO500 results should be kept in outbox
+      type: number
+      required: true
+      default: 10000
