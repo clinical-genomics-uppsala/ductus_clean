@@ -1,0 +1,36 @@
+---
+name: clean_wp1_TSO500_inbox
+description: >
+  Clean Wp1 Inbox from TSO500 runfolders
+enabled: true
+runner_type: orquesta
+entry_point: workflows/clean_wp1_TSO500_inbox.yaml
+pack: ductus_clean
+parameters:
+  context:
+    default: {}
+    immutable: true
+    type: object
+  workflow:
+    default: ductus_clean.clean_wp1_TSO500_inbox
+    immutable: true
+    type: string
+  inbox_folder_path:
+    required: true
+    type: string
+    default: "{{ config_context.TSO500_inbox_folder_path }}"
+  outbox_folder_path:
+    required: true
+    type: string
+    default: "{{ config_context.TSO500_outbox_folder_path }}"
+  days_to_remove_runfolder:
+    required: true
+    type: number
+    default: "{{ config_context.TSO500_inbox_days_to_remove_runfolder }}"
+  project_type:
+    required: true
+    type: string
+  mail_bioinfo:
+    required: true
+    type: string
+    default: "{{ config_context.wp1_notification_mail_bioinfo }}"

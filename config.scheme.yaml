@@ -22,3 +22,24 @@
     type: string
     required: true
     default: stanley
+    
+  TSO500_inbox_folder_path:
+    description: Location for TSO500 inbox folders
+    type: string
+    required: true
+    default: "stanley"
+  TSO500_outbox_folder_path:
+      description: Location for TSO500 outbox folders
+      type: string
+      required: true
+      default: "stanley"
+  TSO500_inbox_days_to_remove_runfolder:
+      description: How many days TSO500 runfolders should be kept in inbox
+      type: number
+      required: true
+      default: 10000
+  TSO500_outbox_days_to_remove_runfolder:
+      description: How many days TSO500 results should be kept in outbox
+      type: number
+      required: true
+      default: 10000
