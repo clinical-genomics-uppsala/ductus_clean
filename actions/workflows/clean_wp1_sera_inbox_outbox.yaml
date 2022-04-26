@@ -163,17 +163,27 @@ tasks:
     with: <% ctx(removable_folders) %>
     action: core.local
     input:
-     cwd: <% ctx(outbox_folder_path) %>/
-     cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
-     timeout: 1800
+      cwd: <% ctx(outbox_folder_path) %>/
+      cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
+      timeout: 1800
+    next:
+      - when: <% failed() %>
+        do:
+          - bioinfo_error_notifier
+          - fail
 
   remove_inbox:
     with: <% ctx(removable_folders) %>
     action: core.local
     input:
-     cwd: <% ctx(inbox_folder_path) %>/
-     cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
-     timeout: 1800
+      cwd: <% ctx(inbox_folder_path) %>/
+      cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
+      timeout: 1800
+    next:
+      - when: <% failed() %>
+        do:
+          - bioinfo_error_notifier
+          - fail
 
   send_summary:
     action: core.sendmail
