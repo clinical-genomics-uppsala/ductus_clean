@@ -116,6 +116,7 @@ tasks:
     input:
      cwd: <% ctx(outbox_folder_path) %>/
      cmd: rm -rf <% item() %>/Done.txt && rm -rf  <% item() %>
+     timeout: 1800
     next:
       - when: <% failed() %>
         do:
@@ -128,6 +129,7 @@ tasks:
     input:
      cwd: <% ctx(workarea_folder_path) %>/
      cmd: rm -rf <% item() %>/fastq-perLane && rm -rf <% item() %>/fastq
+     timeout: 1800
     next:
       - when: <% failed() %>
         do:
