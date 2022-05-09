@@ -128,7 +128,9 @@ tasks:
     action: core.noop
 
   remove_inbox:
-    with: <% ctx(removable_folders) %>
+    with: 
+      items: <% ctx(removable_folders) %>
+      concurrency: 1
     action: core.local
     input:
      cwd: <% ctx(inbox_folder_path) %>/

@@ -159,7 +159,9 @@ tasks:
     action: core.noop
 
   remove_outbox:
-    with: <% ctx(removable_folders) %>
+    with: 
+      items: <% ctx(removable_folders) %>
+      concurrency: 1
     action: core.local
     input:
      cwd: <% ctx(outbox_folder_path) %>/
