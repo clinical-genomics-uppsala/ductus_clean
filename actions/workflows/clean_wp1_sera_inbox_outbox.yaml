@@ -160,18 +160,34 @@ tasks:
     action: core.noop
 
   remove_outbox:
-    with: <% ctx(removable_folders) %>
+    with: 
+      items: <% ctx(removable_folders) %>
+      concurrency: 1 
     action: core.local
     input:
-     cwd: <% ctx(outbox_folder_path) %>/
-     cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
+      cwd: <% ctx(outbox_folder_path) %>/
+      cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
+      timeout: 1800
+    next:
+      - when: <% failed() %>
+        do:
+          - bioinfo_error_notifier
+          - fail
 
   remove_inbox:
-    with: <% ctx(removable_folders) %>
+    with: 
+      items: <% ctx(removable_folders) %>
+      concurrency: 1
     action: core.local
     input:
-     cwd: <% ctx(inbox_folder_path) %>/
-     cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
+      cwd: <% ctx(inbox_folder_path) %>/
+      cmd: rm <% item() %>/Done.txt && rm -rf  <% item() %>
+      timeout: 1800
+    next:
+      - when: <% failed() %>
+        do:
+          - bioinfo_error_notifier
+          - fail
 
   send_summary:
     action: core.sendmail

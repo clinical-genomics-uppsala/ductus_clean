@@ -111,11 +111,14 @@ tasks:
     action: core.noop
 
   remove_outbox:
-    with: <% ctx(removable_folders) %>
+    with: 
+      items: <% ctx(removable_folders) %>
+      concurrency: 1
     action: core.local
     input:
      cwd: <% ctx(outbox_folder_path) %>/
      cmd: rm -rf <% item() %>/Done.txt && rm -rf  <% item() %>
+     timeout: 1800
     next:
       - when: <% failed() %>
         do:
@@ -123,11 +126,14 @@ tasks:
           - fail
 
   remove_workarea_fastq:
-    with: <% ctx(removable_folders) %>
+    with: 
+      items: <% ctx(removable_folders) %>
+      concurrency: 1
     action: core.local
     input:
      cwd: <% ctx(workarea_folder_path) %>/
      cmd: rm -rf <% item() %>/fastq-perLane && rm -rf <% item() %>/fastq
+     timeout: 1800
     next:
       - when: <% failed() %>
         do:
