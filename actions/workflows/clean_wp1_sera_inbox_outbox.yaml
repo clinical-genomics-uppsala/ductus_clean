@@ -142,7 +142,7 @@ tasks:
         python3 -c 'import json;
         folders="<% ctx(folders) %>".split(";")[0].split(",")
         if len(folders) == 1 and len(folders[0]) == 0 :
-          exit(1)
+          exit(0)
         else:
           print(json.dumps(folders))'
     next:
