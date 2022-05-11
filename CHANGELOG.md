@@ -1,5 +1,12 @@
 # Changelog
 
+### [1.1.1](https://www.github.com/clinical-genomics-uppsala/ductus-clean-packs/compare/v1.1.0...v1.1.1) (2022-05-11)
+
+
+### Bug Fixes
+
+* return status 0 when there is nothing to remove ([a373406](https://www.github.com/clinical-genomics-uppsala/ductus-clean-packs/commit/a373406f3d16cf301e6efebed1d6d657fb3c1df0))
+
 ## [1.1.0](https://www.github.com/clinical-genomics-uppsala/ductus-clean-packs/compare/v1.0.0...v1.1.0) (2022-05-09)
 
 
