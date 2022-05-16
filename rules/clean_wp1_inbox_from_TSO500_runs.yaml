@@ -8,7 +8,7 @@ trigger:
   type: "core.st2.CronTimer"
   parameters:
     timezone: "UTC"
-    day_of_week: 2 # or day_of_week: "sun"
+    day_of_week: 4 # or day_of_week: "sun"
     hour: 0
     minute: 0
     second: 0
