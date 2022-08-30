@@ -36,7 +36,7 @@ tasks:
           kept=[]
           folders=[]
           for folder in "<% ctx(folders) %>".split(","):
-            if (datetime.datetime.now() - datetime.datetime.strptime(folder.split("_")[0],"%y%m%d")).days > <% ctx(days_to_remove_runfolder) %>:
+            if (datetime.datetime.now() - datetime.datetime.strptime(folder.split("_")[1],"%y%m%d")).days > <% ctx(days_to_remove_runfolder) %>:
               folders.append(folder)
             else:
               kept.append(folder)

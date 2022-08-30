@@ -45,17 +45,21 @@
       default: 10000
 
   tc_workarea_folder_path:
-    description: Location for Twist Cancer workarea folders
-    type: string
-    required: true
-    default: "stanley"
+      description: Location for Twist Cancer workarea folders
+      type: string
+      required: true
+      default: "stanley"
   tc_outbox_folder_path:
-    description: Location for Twist Cancer outbox folders
-    type: string
-    required: true
-    default: stanley
+      description: Location for Twist Cancer outbox folders
+      type: string
+      required: true
+      default: stanley
   tc_days_to_remove_runfolder:
       description: How many days WP3 TC results should be kept in outbox
       type: number
       required: true
       default: 10000 #30
+  wp3_notification_mail_bioinfo:
+      description: Email to notfy bioinfo
+      type: string
+      required: true
