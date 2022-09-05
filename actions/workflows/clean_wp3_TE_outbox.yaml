@@ -116,7 +116,7 @@ tasks:
       concurrency: 1
     action: core.local
     input:
-     cwd: <% ctx(inbox_folder_path) %>/
+     cwd: <% ctx(outbox_folder_path) %>/
      cmd: rm -rf <% item() %>/conifer && rm -rf <% item() %>/ExomeDepth && rm -rf <% item() %>/FastQC && rm -rf <% item() %>/Genepanel_rapport && rm -rf <% item() %>/LOG && rm -rf <% item() %>/QC_rapporter && rm -rf <% item() %>/ROHnUPD
     next:
       - when: <% failed() %>

@@ -26,7 +26,7 @@ parameters:
   days_to_remove_inbox:
     required: true
     type: number
-    default: {{ config_context.te_days_to_remove_inbox }}
+    default: "{{ config_context.te_days_to_remove_inbox }}"
   mail_bioinfo:
     required: true
     type: string

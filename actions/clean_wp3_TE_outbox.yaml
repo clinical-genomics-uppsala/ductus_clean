@@ -23,10 +23,10 @@ parameters:
     required: true
     type: string
     default: "{{ config_context.te_outbox_folder_path }}"
-  days_to_remove_inbox:
+  days_to_remove_outbox:
     required: true
     type: number
-    default: {{ config_context.te_days_to_remove_outbox }}
+    default: "{{ config_context.te_days_to_remove_outbox }}"
   mail_bioinfo:
     required: true
     type: string
