@@ -22,7 +22,7 @@
     type: string
     required: true
     default: stanley
-    
+
   TSO500_inbox_folder_path:
     description: Location for TSO500 inbox folders
     type: string
@@ -43,3 +43,22 @@
       type: number
       required: true
       default: 10000
+
+  te_inbox_folder_path:
+    description: Location of WP3 TE INBOX folders
+    type: string
+    required: true
+  te_outbox_folder_path:
+    description: Location of WP3 TE OUTBOX find_folders
+    type: string
+    required: true
+  te_days_to_remove_inbox:
+    description: How many days the inbox runfolders should be kept
+    type: number
+    required: true
+    default: 1000 #30
+  te_days_to_remove_outbox:
+    description: How many days the folders in outbox should be kept
+    type: number
+    required: true
+    default: 1000 #60
