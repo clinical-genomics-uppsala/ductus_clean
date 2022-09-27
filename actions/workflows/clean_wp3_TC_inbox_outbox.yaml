@@ -1,0 +1,158 @@
+version: "1.0" # mistral version
+
+description: Remove runfolders from Outbox and Workarea from TC runs
+
+input:
+  - workarea_folder_path
+  - outbox_folder_path
+  - days_to_remove_runfolder
+  - summary
+  - mail_bioinfo
+  - stderr
+
+vars:
+  - folders: null
+
+tasks:
+  find_folders: #Fail om inga folders hittas?
+    action: core.local
+    input:
+      cwd: <% ctx(outbox_folder_path) %>/
+      cmd: find . -mindepth 3 -maxdepth 3 -type f -name state -exec grep -Hl done {} + | python3 -c 'import sys; print(",".join([folder.split(r"/")[1] for folder in sys.stdin.read().rstrip().split("\n") if r"/" in folder]))'
+    next:
+      - when: <% succeeded() %>
+        publish: folders=<% result().stdout %>
+        do:
+          - look_for_old_folders
+
+  look_for_old_folders:
+    action: core.local
+    input:
+      cwd: <% ctx(outbox_folder_path) %>/
+      cmd: |
+          python3 -c 'import sys, datetime
+          if len("<% ctx(folders) %>".split(",")[0]) == 0:
+            exit(1)
+          kept=[]
+          folders=[]
+          for folder in "<% ctx(folders) %>".split(","):
+            if (datetime.datetime.now() - datetime.datetime.strptime(folder.split("_")[1],"%y%m%d")).days > <% ctx(days_to_remove_runfolder) %>:
+              folders.append(folder)
+            else:
+              kept.append(folder)
+          print(",".join(folders) + ";Kept folders:" + ",".join(kept))'
+    next:
+      - when: <% succeeded() %>
+        publish: folders=<% result().stdout %>
+        do:
+          - filter_away_clean_ignore
+      - when: <% failed() %>
+        do:
+          - nothing_to_remove
+
+  filter_away_clean_ignore:
+    action: core.local
+    input:
+      cmd: |
+          python3 -c 'import os;
+          if len("<% ctx(folders) %>".split(";")[0].split(",")[0]) == 0:
+            exit(1)
+          folders=[]
+          ignored_folders=[]
+          for folder in "<% ctx(folders) %>".split(";")[0].split(","):
+            if not (os.path.isfile("<% ctx(outbox_folder_path) %>/" + folder + "/.clean_ignore") or os.path.isfile("<% ctx(workarea_folder_path) %>/" + folder + "/.clean_ignore")):
+              folders.append(folder)
+            else:
+              ignored_folders.append(folder)
+          print(",".join(folders) +
+                ";Clean ignore:" +
+                ",".join(ignored_folders) + ";" +
+                ";".join("<% ctx(folders) %>".split(";")[1:]))'
+    next:
+      - when: <% succeeded() %>
+        publish: folders=<% result().stdout %>
+        do:
+          - process_summary
+          - process_removable
+      - when: <% failed() %>
+        do:
+          - nothing_to_remove
+
+  process_summary:
+    action: core.local
+    input:
+      cmd: python3 -c 'print("Removed:\n - " + "\n".join("<% ctx(folders) %>".split(";")).replace(":",":\n - ").replace(",","\n - "))'
+    next:
+      - when: <% succeeded() %>
+        publish: summary=<% result().stdout %>
+        do:
+          - send_summary
+
+  process_removable:
+    action: core.local
+    input:
+      cmd: |
+        python3 -c 'import json;
+        folders="<% ctx(folders) %>".split(";")[0].split(",")
+        if len(folders) == 1 and len(folders[0]) == 0 :
+          exit(1)
+        else:
+          print(json.dumps(folders))'
+    next:
+      - when: <% succeeded() %>
+        publish: removable_folders=<% result().stdout %>
+        do:
+          - remove_outbox
+          - remove_workarea
+      - when: <% failed() %>
+        do:
+          - nothing_to_remove
+
+  nothing_to_remove:
+    action: core.noop
+
+  remove_outbox:
+    with:
+      items: <% ctx(removable_folders) %>
+      concurrency: 1
+    action: core.local
+    input:
+     cwd: <% ctx(outbox_folder_path) %>/
+     cmd: rm -rf <% item() %>/Done.txt && rm -rf  <% item() %>
+     timeout: 1800
+    next:
+      - when: <% failed() %>
+        do:
+          - bioinfo_error_notifier
+          - fail
+
+  remove_workarea:
+    with:
+      items: <% ctx(removable_folders) %>
+      concurrency: 1
+    action: core.local
+    input:
+     cwd: <% ctx(workarea_folder_path) %>/
+     cmd: rm -rf <% item() %>/Done.txt && rm -rf <% item() %>/
+     timeout: 1800
+    next:
+      - when: <% failed() %>
+        do:
+          - bioinfo_error_notifier
+          - fail
+
+  send_summary:
+    action: core.sendmail
+    input:
+      to: <% ctx(mail_bioinfo) %>
+      from: stanley@clinicalgenomics-as.se
+      subject: "[DUCTUS][WP3][TC] - Clean up summary"
+      body: <% ctx(summary) %>
+
+  bioinfo_error_notifier:
+    action: core.sendmail
+    input:
+      to: <% ctx(mail_bioinfo) %>
+      from: stanley@clinicalgenomics-as.se
+      subject: "[DUCTUS][WP3][TC][ERROR] - Clean error"
+      body: Something went wrong during cleaning of TC inbox or outbox folder on Marvin
