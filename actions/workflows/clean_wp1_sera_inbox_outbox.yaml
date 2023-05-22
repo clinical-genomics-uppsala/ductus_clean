@@ -194,7 +194,7 @@ tasks:
     input:
       to: <% ctx(mail_bioinfo) %>
       from: stanley@clinicalgenomics-as.se
-      subject: "Wp1: Sera: Clean up summary"
+      subject: "[DUCTUS][WP1][Clean][Sera]: Sera: Clean up summary"
       body: <% ctx(summary) %>
 
   bioinfo_error_notifier:
