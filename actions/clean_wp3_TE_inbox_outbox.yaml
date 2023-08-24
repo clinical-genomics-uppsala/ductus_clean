@@ -1,10 +1,10 @@
 ---
-name: clean_wp3_TE_inbox
+name: clean_wp3_TE_inbox_outbox
 description: >
-  Clean Wp3 Inbox from Twist Exome runfolders
+  Clean WP3 Inbox and Outbox from Twist Exome runfolders
 enabled: true
 runner_type: orquesta
-entry_point: workflows/clean_wp3_TE_inbox.yaml
+entry_point: workflows/clean_wp3_TE_inbox_outbox.yaml
 pack: ductus_clean
 parameters:
   context:
@@ -12,7 +12,7 @@ parameters:
     immutable: true
     type: object
   workflow:
-    default: ductus_clean.clean_wp3_TE_inbox
+    default: ductus_clean.clean_wp3_TE_inbox_outbox
     immutable: true
     type: string
   inbox_folder_path:
@@ -23,10 +23,10 @@ parameters:
     required: true
     type: string
     default: "{{ config_context.te_outbox_folder_path }}"
-  days_to_remove_inbox:
+  days_to_remove_runfolder:
     required: true
     type: number
-    default: "{{ config_context.te_days_to_remove_inbox }}"
+    default: "{{ config_context.te_days_to_remove_runfolder }}"
   mail_bioinfo:
     required: true
     type: string

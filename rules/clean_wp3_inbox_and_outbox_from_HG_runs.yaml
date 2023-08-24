@@ -1,0 +1,17 @@
+---
+name: "clean_HG_inbox_outbox"
+pack: "ductus_clean"
+description: "Rule that triggers cleaning of inbox and outbox data for HG"
+enabled: false
+
+trigger:
+  type: "core.st2.CronTimer"
+  parameters:
+    timezone: "UTC"
+    day_of_week: 6 # or day_of_week: "sun"
+    hour: 4
+    minute: 0
+    second: 0
+
+action:
+  ref: "ductus_clean.clean_wp3_HG_inbox_outbox"

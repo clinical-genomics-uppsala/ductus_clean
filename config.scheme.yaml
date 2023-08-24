@@ -1,4 +1,5 @@
 ---
+#WP1
   sera_inbox_folder_path:
     description: Location for sera inbox folders
     type: string
@@ -7,11 +8,34 @@
     description: Location for sera outbox folders
     type: string
     required: true
+
+  TSO500_inbox_folder_path:
+    description: Location for TSO500 inbox folders
+    type: string
+    required: true
+    default: "stanley"
+  TSO500_outbox_folder_path:
+    description: Location for TSO500 outbox folders
+    type: string
+    required: true
+    default: "stanley"
+  TSO500_inbox_days_to_remove_runfolder:
+    description: How many days TSO500 runfolders should be kept in inbox
+    type: number
+    required: true
+    default: 10000
+  TSO500_outbox_days_to_remove_runfolder:
+    description: How many days TSO500 results should be kept in outbox
+    type: number
+    required: true
+    default: 10000
+
   wp1_notification_mail_bioinfo:
     description: email used to notify bioinfo
     type: string
     required: true
 
+#WP2
   tm_workarea_folder_path:
     description: Location for Twist Myeloid workarea folders
     type: string
@@ -23,26 +47,27 @@
     required: true
     default: stanley
 
-  TSO500_inbox_folder_path:
-    description: Location for TSO500 inbox folders
+  wp2_notification_mail_bioinfo:
+    description: email used to notify bioinfo
     type: string
     required: true
-    default: "stanley"
-  TSO500_outbox_folder_path:
-      description: Location for TSO500 outbox folders
+
+# WP3
+  hg_inbox_folder_path:
+      description: Location for Whole Genome Inbox folders
       type: string
       required: true
       default: "stanley"
-  TSO500_inbox_days_to_remove_runfolder:
-      description: How many days TSO500 runfolders should be kept in inbox
+  hg_outbox_folder_path:
+      description: Location for Whole Genome outbox folders
+      type: string
+      required: true
+      default: stanley
+  hg_days_to_remove_runfolder:
+      description: How many days WP3 HG results should be kept in outbox
       type: number
       required: true
-      default: 10000
-  TSO500_outbox_days_to_remove_runfolder:
-      description: How many days TSO500 results should be kept in outbox
-      type: number
-      required: true
-      default: 10000
+      default: 10000 #30
 
   tc_workarea_folder_path:
       description: Location for Twist Cancer workarea folders
@@ -59,26 +84,24 @@
       type: number
       required: true
       default: 10000 #30
+
+  te_inbox_folder_path:
+      description: Location for Twist Exome workarea folders
+      type: string
+      required: true
+      default: "stanley"
+  te_outbox_folder_path:
+      description: Location for Twist Exome outbox folders
+      type: string
+      required: true
+      default: stanley
+  te_days_to_remove_runfolder:
+      description: How many days WP3 TE results should be kept in outbox
+      type: number
+      required: true
+      default: 10000 #30
+
   wp3_notification_mail_bioinfo:
       description: Email to notfy bioinfo
       type: string
       required: true
-
-  te_inbox_folder_path:
-    description: Location of WP3 TE INBOX folders
-    type: string
-    required: true
-  te_outbox_folder_path:
-    description: Location of WP3 TE OUTBOX find_folders
-    type: string
-    required: true
-  te_days_to_remove_inbox:
-    description: How many days the inbox runfolders should be kept
-    type: number
-    required: true
-    default: 1000 #30
-  te_days_to_remove_outbox:
-    description: How many days the folders in outbox should be kept
-    type: number
-    required: true
-    default: 1000 #60

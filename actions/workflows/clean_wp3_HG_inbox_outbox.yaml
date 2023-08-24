@@ -1,11 +1,11 @@
 version: "1.0" # mistral version
 
-description: Remove runfolders from OUTBOX from TE runs
+description: Remove runfolders from INBOX from TE runs
 
 input:
   - inbox_folder_path
   - outbox_folder_path
-  - days_to_remove_outbox
+  - days_to_remove_inbox
   - summary
   - mail_bioinfo
   - stderr
@@ -17,7 +17,7 @@ tasks:
   find_folders: #Outbox
     action: core.local
     input:
-      cwd: <% ctx(outbox_folder_path) %>/
+      cwd: <% ctx(inbox_folder_path) %>/
       cmd: find . -mindepth 3 -maxdepth 3 -type f -name state -exec grep -Hl done {} + | python3 -c 'import sys; print(",".join([folder.split(r"/")[1] for folder in sys.stdin.read().rstrip().split("\n") if r"/" in folder]))'
     next:
       - when: <% succeeded() %>
@@ -36,7 +36,7 @@ tasks:
           kept=[]
           folders=[]
           for folder in "<% ctx(folders) %>".split(","):
-            if (datetime.datetime.now() - datetime.datetime.strptime(folder.split("_")[1],"%y%m%d")).days > <% ctx(days_to_remove_outbox) %>:
+            if (datetime.datetime.now() - datetime.datetime.strptime(folder.split("_")[1],"%y%m%d")).days > <% ctx(days_to_remove_inbox) %>:
               folders.append(folder)
             else:
               kept.append(folder)
@@ -60,7 +60,7 @@ tasks:
           folders=[]
           ignored_folders=[]
           for folder in "<% ctx(folders) %>".split(";")[0].split(","):
-            if not (os.path.isfile("<% ctx(inbox_folder_path) %>/" + folder + "/.clean_ignore") or os.path.isfile("<% ctx(outbox_folder_path) %>/" + folder + "/.clean_ignore")):
+            if not (os.path.isfile("<% ctx(outbox_folder_path) %>/" + folder + "/.clean_ignore") or os.path.isfile("<% ctx(outbox_folder_path) %>/" + folder + "/.clean_ignore")):
               folders.append(folder)
             else:
               ignored_folders.append(folder)
@@ -103,6 +103,7 @@ tasks:
         publish: removable_folders=<% result().stdout %>
         do:
           - remove_outbox
+          - remove_inbox_fastq
       - when: <% failed() %>
         do:
           - nothing_to_remove
@@ -117,19 +118,35 @@ tasks:
     action: core.local
     input:
      cwd: <% ctx(outbox_folder_path) %>/
-     cmd: rm -rf <% item() %>/conifer && rm -rf <% item() %>/ExomeDepth && rm -rf <% item() %>/FastQC && rm -rf <% item() %>/Genepanel_rapport && rm -rf <% item() %>/LOG && rm -rf <% item() %>/QC_rapporter && rm -rf <% item() %>/ROHnUPD
+     cmd: rm -rf <% item() %>/Done.txt && rm -rf <% item() %>
+     timeout: 1800
     next:
       - when: <% failed() %>
         do:
           - bioinfo_error_notifier
           - fail
 
+remove_inbox_fastq:
+  with:
+    items: <% ctx(removable_folders) %>
+    concurrency: 1
+  action: core.local
+  input:
+   cwd: <% ctx(inbox_folder_path) %>/
+   cmd: rm -rf <% item() %>/fastq-perLane && rm -rf <% item() %>/fastq
+   timeout: 1800
+  next:
+    - when: <% failed() %>
+      do:
+        - bioinfo_error_notifier
+        - fail
+
   send_summary:
     action: core.sendmail
     input:
       to: <% ctx(mail_bioinfo) %>
       from: stanley@clinicalgenomics-as.se
-      subject: "[DUCTUS][WP3][TE] - Clean up summary OUTBOX"
+      subject: "[DUCTUS][WP3][HG] - Clean up summary"
       body: <% ctx(summary) %>
 
   bioinfo_error_notifier:
@@ -137,5 +154,5 @@ tasks:
     input:
       to: <% ctx(mail_bioinfo) %>
       from: stanley@clinicalgenomics-as.se
-      subject: "[DUCTUS][WP3][TE][ERROR] - Clean error"
-      body: Something went wrong during cleaning of TE outbox folder on Marvin
+      subject: "[DUCTUS][WP3][HG][ERROR] - Clean error"
+      body: Something went wrong during cleaning of HG folders on Marvin

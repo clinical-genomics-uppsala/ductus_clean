@@ -28,7 +28,7 @@ tasks:
   look_for_old_folders:
     action: core.local
     input:
-      cwd: <% ctx(inbox_folder_path) %>/
+      cwd: <% ctx(outbox_folder_path) %>/
       cmd: |
           python3 -c 'import sys, datetime
           if len("<% ctx(folders) %>".split(",")[0]) == 0:
@@ -60,7 +60,7 @@ tasks:
           folders=[]
           ignored_folders=[]
           for folder in "<% ctx(folders) %>".split(";")[0].split(","):
-            if not (os.path.isfile("<% ctx(inbox_folder_path) %>/" + folder + "/.clean_ignore") or os.path.isfile("<% ctx(outbox_folder_path) %>/" + folder + "/.clean_ignore")):
+            if not (os.path.isfile("<% ctx(outbox_folder_path) %>/" + folder + "/.clean_ignore") or os.path.isfile("<% ctx(outbox_folder_path) %>/" + folder + "/.clean_ignore")):
               folders.append(folder)
             else:
               ignored_folders.append(folder)
@@ -102,7 +102,8 @@ tasks:
       - when: <% succeeded() %>
         publish: removable_folders=<% result().stdout %>
         do:
-          - remove_inbox
+          - remove_outbox
+          - remove_inbox_fastq
       - when: <% failed() %>
         do:
           - nothing_to_remove
@@ -110,14 +111,13 @@ tasks:
   nothing_to_remove:
     action: core.noop
 
-
-  remove_inbox:
+  remove_outbox:
     with:
       items: <% ctx(removable_folders) %>
       concurrency: 1
     action: core.local
     input:
-     cwd: <% ctx(inbox_folder_path) %>/
+     cwd: <% ctx(outbox_folder_path) %>/
      cmd: rm -rf <% item() %>/Done.txt && rm -rf <% item() %>
      timeout: 1800
     next:
@@ -126,12 +126,27 @@ tasks:
           - bioinfo_error_notifier
           - fail
 
+remove_inbox_fastq:
+  with:
+    items: <% ctx(removable_folders) %>
+    concurrency: 1
+  action: core.local
+  input:
+   cwd: <% ctx(inbox_folder_path) %>/
+   cmd: rm -rf <% item() %>/fastq-perLane && rm -rf <% item() %>/fastq
+   timeout: 1800
+  next:
+    - when: <% failed() %>
+      do:
+        - bioinfo_error_notifier
+        - fail
+
   send_summary:
     action: core.sendmail
     input:
       to: <% ctx(mail_bioinfo) %>
       from: stanley@clinicalgenomics-as.se
-      subject: "[DUCTUS][WP3][TE] - Clean up summary INBOX"
+      subject: "[DUCTUS][WP3][TE] - Clean up summary"
       body: <% ctx(summary) %>
 
   bioinfo_error_notifier:
@@ -140,4 +155,4 @@ tasks:
       to: <% ctx(mail_bioinfo) %>
       from: stanley@clinicalgenomics-as.se
       subject: "[DUCTUS][WP3][TE][ERROR] - Clean error"
-      body: Something went wrong during cleaning of TE inbox folder on Marvin
+      body: Something went wrong during cleaning of TE inbox and outbox folder on Marvin
