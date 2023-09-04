@@ -86,7 +86,7 @@
       default: 10000 #30
 
   te_inbox_folder_path:
-      description: Location for Twist Exome workarea folders
+      description: Location for Twist Exome INBOX folders
       type: string
       required: true
       default: "stanley"
