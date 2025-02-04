@@ -1,0 +1,33 @@
+---
+name: clean_wp3_TC_inbox_outbox
+description: >
+  Clean WP3 Inbox and Outbox from Twist Cancer runfolders
+enabled: true
+runner_type: orquesta
+entry_point: workflows/clean_wp3_TC_inbox_outbox.yaml
+pack: ductus_clean
+parameters:
+  context:
+    default: {}
+    immutable: true
+    type: object
+  workflow:
+    default: ductus_clean.clean_wp3_TC_inbox_outbox
+    immutable: true
+    type: string
+  workarea_folder_path:
+    required: true
+    type: string
+    default: "{{ config_context.tc_workarea_folder_path }}"
+  outbox_folder_path:
+    required: true
+    type: string
+    default: "{{ config_context.tc_outbox_folder_path }}"
+  days_to_remove_runfolder:
+    required: true
+    type: number
+    default: "{{ config_context.tc_days_to_remove_runfolder }}"
+  mail_bioinfo:
+    required: true
+    type: string
+    default: "{{ config_context.wp3_notification_mail_bioinfo }}"
